@@ -45,6 +45,7 @@ from PySide import QtGui, QtCore
 from FreeCAD import Gui
 import os
 import string
+import traceback
 App = FreeCAD
 Gui = FreeCADGui
 
@@ -127,17 +128,18 @@ class p():
 
 # ===== Mode - Move ==============================================
             elif mode == "Move aliases":
-
-                self.d3.setDisabled(False)
-                for i in range(row_from,row_to+1):
-                    cell_reference = 'A'+ str(i)                        
+                for i in range(row_from, row_to + 1):
                     cell_from = column_from + str(i)
                     cell_to = column_to + str(i)
-                    App.ActiveDocument.Spreadsheet.setAlias(cell_from, '')
-                    App.ActiveDocument.recompute()
-                    App.ActiveDocument.Spreadsheet.setAlias(cell_to, App.ActiveDocument.Spreadsheet.getContents(cell_reference))
-                    App.ActiveDocument.recompute()
+                    alias = App.ActiveDocument.Spreadsheet.getAlias(cell_from)
+                    if alias:
+                        App.ActiveDocument.Spreadsheet.setAlias(cell_from, '')
+                        App.ActiveDocument.Spreadsheet.recompute()
+                        App.ActiveDocument.Spreadsheet.setAlias(cell_to, alias)
+                        App.ActiveDocument.Spreadsheet.recompute()
+                App.ActiveDocument.recompute()
                 FreeCAD.Console.PrintMessage("\nAliases moved\n")
+                self.d2.setText(column_to)
 
 
 # ===== Mode - Generate part family ==============================================
@@ -198,9 +200,9 @@ class p():
                 FreeCAD.Console.PrintError("\nError or 'TODO'\n")
 
 
-        except:
+        except Exception:
             FreeCAD.Console.PrintError("\nUnable to complete task\n")
- 
+            FreeCAD.Console.PrintError(traceback.format_exc())
             self.close()
  
 
@@ -359,4 +361,4 @@ class p():
     def popup(self):
         self.dialog2 = infoPopup()
         self.dialog2.exec_()
-p() 
+p()
